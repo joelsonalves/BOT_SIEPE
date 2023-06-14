@@ -2,6 +2,47 @@ from playwright.sync_api import sync_playwright
 import pandas as pd
 import os
 
+SECRETARIA = 'Secretaria de Educação e Esportes'
+SIGLA_SECRETARIA = 'SEE-PE'
+GRE = 'Gerência Regional de Educação Recife Norte'
+SIGLA_GRE = 'GRE Recife Norte'
+ESCOLA = 'Escola Técnica Professor Antônio Carlos Gomes da Costa'
+SIGLA_ESCOLA = 'ETEPAC'
+
+EQUIPE_GESTORA = [
+    'Arnaldo Luiz da Silva Junior (Diretor Escolar)',
+    'Paulo Euzebio Bispo (Assistente de Gestão)',
+    'Maria do Rosário Costa Cordouro de Vasconcelos (Chefe de Secretaria)',
+    'Gustavo Henrique Tavares Ribeiro (Educador de Apoio)',
+]
+
+NOME_DA_AUTOMACAO = 'Automação Auxiliar no Lançamento de Notas no Diário de Classe SIEPE'
+VERSAO = '2023.06.14'
+DESENVOLVEDOR = 'Joelson Alves de Melo Junior'
+CONTATO = 'joelsonjunior@educacao.pe.gov.br'
+TESTADORES = {
+    '2' : [
+        'Dayvson Ricardo Rufino da Silva (ADM 2023.1)',
+        'Cristiane Maria de Oliveira (ADM 2023.1)',
+    ],
+    '3' : [
+        'Crisleide Maria da Silva Nascimento Acioly (SEG 2023.1)'
+    ],
+    '4' : [
+        'Dayvson Ricardo Rufino da Silva (ADM 2023.1)',
+        'Cristiane Maria de Oliveira (ADM 2023.1)',
+    ],
+    '5' : [
+        'Aguardando validação',
+    ],
+    '6' : [
+        'Aguardando validação',
+    ],
+    '7' : [
+        'Aguardando validação',
+    ]
+}
+
 MATRICULA   = 1
 NOME        = 0
 
@@ -34,8 +75,8 @@ class Bot():
         self.__pagina_diario_de_classe = 'https://siepe.educacao.pe.gov.br/diarioclasse/DiarioClasse.do'
         self.__lista_de_estudantes_siepe = []
         self.__lista_de_notas_ava = []
-        self.__pasta_planilhas_de_notas = 'planilhas_de_notas'
-        self.__arquivo_xlsx = 'arquivo.xlsx'
+        self.__pasta_planilhas_de_notas = 'PLANILHAS_DE_NOTAS'
+        self.__arquivo_xlsx = 'planilha_ausente.xlsx'
         self.__numero_de_competencias = 7
 
     def __selecionar_planilha_de_notas(self):
@@ -363,7 +404,15 @@ class Bot():
 
         with sync_playwright() as p:
 
-            print('\nBot de Apoio ao Lançamento de Notas da EAD no SIEPE...\n')
+            separador = '#' * 2
+            print(f'''\n{separador} {SECRETARIA.upper()} | {SIGLA_SECRETARIA}''')
+            print(f'''{separador} {GRE.upper()} | {SIGLA_GRE}''')
+            print(f'''{separador} {ESCOLA.upper()} | {SIGLA_ESCOLA}''')
+            print(f'''\n{'#' * 73}\n{separador} {NOME_DA_AUTOMACAO.upper()} {separador}''')
+            print(f'''{'#' * 73}\n\n{separador} Versão: {VERSAO}''')
+            print(f'''{separador} Desenvolvedor: {DESENVOLVEDOR}''')
+            print(f'''{separador} E-mail: {CONTATO}''')
+            separador = None
 
             bot = Bot()
 
@@ -475,7 +524,17 @@ class Bot():
             browser = None
             bot = None
 
-            print('\nBot encerrado.')  
+            separador = '#' * 2
+            print(f'{separador} CRÉDITOS:')
+            print(f'''{separador} Desenvolvedor: \n{separador} \t {DESENVOLVEDOR}''')
+            for num_competencias in range(2,8):
+                print(f'''{separador}\n{separador} Equipe de Testadores e Validadores de Notas de {num_competencias} Competências:''')
+                for nome in TESTADORES[f'''{str(num_competencias)}''']:
+                    print(f'''{separador} \t {nome}''')
+            print(f'''{separador}\n{separador} {SECRETARIA.upper()} | {SIGLA_SECRETARIA}''')
+            print(f'''{separador} {GRE.upper()} | {SIGLA_GRE}''')
+            print(f'''{separador} {ESCOLA.upper()} | {SIGLA_ESCOLA}''')
+            print('\nAutomação encerrada.')  
 
 if __name__ == '__main__':
 
