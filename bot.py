@@ -17,7 +17,7 @@ EQUIPE_GESTORA = [
 ]
 
 NOME_DA_AUTOMACAO = 'Automação Auxiliar no Lançamento de Notas no Diário de Classe SIEPE'
-VERSAO = '2023.06.14'
+VERSAO = '2023.06.16'
 DESENVOLVEDOR = 'Joelson Alves de Melo Junior'
 CONTATO = 'joelsonjunior@educacao.pe.gov.br'
 TESTADORES = {
@@ -26,7 +26,8 @@ TESTADORES = {
         'Cristiane Maria de Oliveira (ADM 2023.1)',
     ],
     '3' : [
-        'Crisleide Maria da Silva Nascimento Acioly (SEG 2023.1)'
+        'Crisleide Maria da Silva Nascimento Acioly (SEG 2023.1)',
+        'Eraldo de Jesus Argolo (SEG 2023.1)',
     ],
     '4' : [
         'Dayvson Ricardo Rufino da Silva (ADM 2023.1)',
@@ -365,17 +366,15 @@ class Bot():
                 if nota_2 == 'NC':
                     page.locator(f'input#chkNaoCompareceu_7_{matricula}').click()
                 else:
-                    page.locator(f'input#nota_7_{matricula}').fill(str(nota_2).replace('.',','))
-
-                    # Pressiona Tab duas vezes no último estudante
-                    if (i == len(self.__lista_de_notas_ava) - 1):
-                        for tab in range(2):
-                            page.locator(f'input#nota_7_{matricula}').press('Tab')               
+                    page.locator(f'input#nota_7_{matricula}').fill(str(nota_2).replace('.',','))               
                 
             elif nota_at1 == 'HOMONIMO':
                 homonimos.append(i)
             else:
                 nao_localizados.append(i)
+
+        # Pressiona Tab duas vezes no último estudante
+        page.keyboard.press('Tab')
 
         # Volta para a parte superior da página
         page.keyboard.press('Home') 
@@ -525,15 +524,20 @@ class Bot():
             bot = None
 
             separador = '#' * 2
+            print(f'''\n{'#' * 73}\n{separador} {NOME_DA_AUTOMACAO.upper()} {separador}''')
+            print(f'''{'#' * 73}\n\n{separador} Versão: {VERSAO}\n{separador}''')
             print(f'{separador} CRÉDITOS:')
-            print(f'''{separador} Desenvolvedor: \n{separador} \t {DESENVOLVEDOR}''')
+            print(f'''{separador}\n{separador} {SECRETARIA.upper()} | {SIGLA_SECRETARIA}''')
+            print(f'''{separador} {GRE.upper()} | {SIGLA_GRE}''')
+            print(f'''{separador} {ESCOLA.upper()} | {SIGLA_ESCOLA}''')
+            print(f'''{separador}\n{separador} Equipe Gestora:''')
+            for nome in EQUIPE_GESTORA:
+                print(f'''{separador} \t {nome}''')
+            print(f'''{separador}\n{separador} Desenvolvedor: \n{separador} \t {DESENVOLVEDOR}''')
             for num_competencias in range(2,8):
                 print(f'''{separador}\n{separador} Equipe de Testadores e Validadores de Notas de {num_competencias} Competências:''')
                 for nome in TESTADORES[f'''{str(num_competencias)}''']:
                     print(f'''{separador} \t {nome}''')
-            print(f'''{separador}\n{separador} {SECRETARIA.upper()} | {SIGLA_SECRETARIA}''')
-            print(f'''{separador} {GRE.upper()} | {SIGLA_GRE}''')
-            print(f'''{separador} {ESCOLA.upper()} | {SIGLA_ESCOLA}''')
             print('\nAutomação encerrada.')  
 
 if __name__ == '__main__':
