@@ -6,10 +6,9 @@ Nota: cabe ao professor(a) e/ou ao coordenador(a), a conferência e o salvamento
 
 ## 1. Preparação do Ambiente
 
-##### 1.1. Instalar o python 3.11 ou versão estável superior, preferencialmente através da Microsoft Store;
-##### 1.2. Instalar as bibliotecas Pandas, Openpyxl e PlayWright, preferencialmente através do PowerShell: "pip install pandas openpyxl playwright".
-##### 1.3. Acessar a pasta na qual o PlayWright foi instalado, preferencialmente através do PowerShell: "cd [caminho]";
-##### 1.4. Instalar os complementos do PlayWright, preferencialmente através do PowerShell: ".\playwright install";
+##### 1.1. Baixar e instalar o python 3.11 ou versão estável superior (https://www.python.org);
+##### 1.2. Baixar e instalar o Git (https://git-scm.com/download/windows);
+##### 1.2. Instalar as bibliotecas Pandas, Openpyxl e PlayWright, complementos do PlayWright, entrar na unidade C: e realizar o download da Automação, preferencialmente através do PowerShell: "pip install pandas, openpyxl, playwriht ; playwright install ; cd \ ; ";
 
 ## 2. Implantação da Automação
 
