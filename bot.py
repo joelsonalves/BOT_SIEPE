@@ -17,7 +17,7 @@ EQUIPE_GESTORA = [
 ]
 
 NOME_DA_AUTOMACAO = 'Automação Auxiliar no Lançamento de Notas no Diário de Classe SIEPE'
-VERSAO = '2023.06.16'
+VERSAO = '2023.06.19'
 DESENVOLVEDOR = 'Joelson Alves de Melo Junior'
 CONTATO = 'joelsonjunior@educacao.pe.gov.br'
 TESTADORES = {
@@ -112,6 +112,17 @@ class Bot():
                 texto = texto.replace(c, '') 
         return texto
     
+    def __ajustar_nome_turma_siepe(self, texto):
+        texto = texto.strip().replace('  ', ' ').upper()
+        for linha in LISTA_PARA_TROCA_DE_CARACTERES:
+            for c in linha[1]:
+                texto = texto.replace(c, linha[0])
+        for c in texto:
+            if not ((c >= 'A' and c <= 'Z') or (c >= '0' and c <= '9') or c == ' '):
+                texto = texto.replace(c, '') 
+        texto = texto.lower().replace(' ', '_')
+        return texto
+    
     def __verificar_se_o_navegador_ainda_esta_funcional(self, page):
         try:
             page.title()
@@ -143,6 +154,30 @@ class Bot():
             for (var j = 0; j < arr_input.length; j++) { 
                 if (arr_input[j].id.includes('nota_1_')) { 
                     let aux = arr_input[j].id.replace('nota_1_',''); 
+                    lista[i].push(aux);
+                    i++; 
+                } 
+            }
+            return lista;
+
+        } ''')
+
+        for i in range(len(self.__lista_de_estudantes_siepe)):
+            self.__lista_de_estudantes_siepe[i][0] = self.__ajustar_texto(self.__lista_de_estudantes_siepe[i][0])
+
+    def __extrair_lista_de_estudantes_noa(self, page):
+        
+        self.__lista_de_estudantes_siepe = page.evaluate(''' () => { 
+        
+            var lista = []; 
+            document.querySelectorAll('table.TabelaDiarioClasse a').forEach((linha) => { 
+                if (linha.innerText !== '') lista.push([linha.innerText]); 
+            }); 
+            var i = 0; 
+            var arr_input = document.querySelectorAll('table.TabelaDiarioClasse input'); 
+            for (var j = 0; j < arr_input.length; j++) { 
+                if (arr_input[j].id.includes('nota_')) { 
+                    let aux = arr_input[j].id.replace('nota_',''); 
                     lista[i].push(aux);
                     i++; 
                 } 
@@ -322,6 +357,69 @@ class Bot():
                 
             df_resultados_ava = None
 
+    def __comparar_lista_de_estudantes_e_processar_notas_da_noa(self):
+
+        if len(self.__lista_de_estudantes_siepe) > 0:
+
+            self.__lista_de_notas_ava = []
+            for i in range(len(self.__lista_de_estudantes_siepe)):
+                self.__lista_de_notas_ava.append('')
+
+            df_resultados_ava = pd.read_excel(os.path.join(self.__pasta_planilhas_de_notas, self.__arquivo_xlsx), dtype=str)
+
+            # Colocar colunas em maiúsculo e remover excesso de espaço
+            for nome_coluna in df_resultados_ava.columns:
+                df_resultados_ava.rename(columns={nome_coluna: nome_coluna.upper().strip()}, inplace=True)
+
+            # Ajustar nomes das colunas
+            for competencia in range(1,8):
+                for nome_coluna in df_resultados_ava.columns:
+                    texto_aux = 'NOA'
+                    if nome_coluna.find(f'({texto_aux})') >= 0: 
+                        df_resultados_ava.rename(columns={nome_coluna: texto_aux}, inplace=True)
+                        break
+
+            # Ajustar nome dos estudantes no DataFrame
+            for i in df_resultados_ava.index:
+                df_resultados_ava.loc[i, 'NOME'] = self.__ajustar_texto(df_resultados_ava.loc[i, 'NOME'])
+
+                if df_resultados_ava.loc[i, 'NOME'].find('ALUNO') == 0:
+                    df_resultados_ava.loc[i, 'NOME'] = self.__ajustar_texto(df_resultados_ava.loc[i, 'SOBRENOME'])
+
+            # Localizar estudantes e processar notas
+            for i in range(len(self.__lista_de_estudantes_siepe)):
+                linha = df_resultados_ava.loc[df_resultados_ava['NOME']==self.__lista_de_estudantes_siepe[i][NOME]].reset_index(drop=True)
+                quant_linhas = linha.shape[0]
+                if quant_linhas > 1:
+                    self.__lista_de_notas_ava[i] = 'HOMONIMO'
+                elif linha.shape[0] == 1:
+                    
+                    # Verificar se o campo da NOA está vazio ou não
+                    if linha.loc[0, 'NOA'] == '-':
+                        self.__lista_de_notas_ava[i] = 'NC'
+                    else:
+                        self.__lista_de_notas_ava[i] = float(linha.loc[0, 'NOA'])  
+                        
+                else:
+                    self.__lista_de_notas_ava[i] = 'NAO_LOCALIZADO'
+                
+            df_resultados_ava = None
+    
+    def __salvar_arquivo_csv(self, nome_arquivo_turma_siepe, lista_de_estudantes_com_matriculas):
+        # Sobrescrever o arquivo com o nome da turma no SIEPE com a lista de homônimos ou não localizados
+        with open(os.path.join(self.__pasta_planilhas_de_notas, nome_arquivo_turma_siepe), 'w') as arquivo:
+            arquivo.write('"MATRÍCULA","NOME"\n')
+            for linha in lista_de_estudantes_com_matriculas:
+                arquivo.write(f'"{linha[1]}","{linha[0]}"\n')
+
+    def __capturar_nome_da_turma_no_siepe(self, page):
+        nome_turma_siepe = page.evaluate(''' () => { 
+        
+            return document.querySelectorAll('.fieldsetBase .TabelaDiarioClasse td')[4].innerText
+
+        } ''')
+        return self.__ajustar_nome_turma_siepe(nome_turma_siepe)
+
     def __preencher_notas_no_siepe(self, page):
 
         homonimos = []
@@ -373,11 +471,14 @@ class Bot():
             else:
                 nao_localizados.append(i)
 
-        # Pressiona Tab duas vezes no último estudante
+        # Pressiona Tab
         page.keyboard.press('Tab')
 
         # Volta para a parte superior da página
         page.keyboard.press('Home') 
+
+        # Capturar o nome da turma
+        nome_turma_siepe = self.__capturar_nome_da_turma_no_siepe(page)
 
         print('\n+++++++ LISTA DE HOMÔNIMOS +++++++')
         for i in homonimos:
@@ -388,6 +489,12 @@ class Bot():
             print(f'Estudante nº {str(i + 1).zfill(3)} | {nome} ({matricula})')
         print(f'TOTAL: {len(homonimos)} estudante(s)')
 
+        # Salvar lista de homônimos, se houver
+        lista_de_estudantes_com_matriculas = []
+        for pos in homonimos:
+            lista_de_estudantes_com_matriculas.append(self.__lista_de_estudantes_siepe[pos])
+        self.__salvar_arquivo_csv(f'{nome_turma_siepe}_homonimos.csv', lista_de_estudantes_com_matriculas)
+
         print('\n------- LISTA DE NÃO LOCALIZADOS -------')
         for i in nao_localizados:
 
@@ -396,7 +503,144 @@ class Bot():
 
             print(f'Estudante nº {str(i + 1).zfill(3)} | {nome} ({matricula})')
         print(f'TOTAL: {len(nao_localizados)} estudante(s)')
+
+        # Salvar lista de não localizados, se houver
+        lista_de_estudantes_com_matriculas = []
+        for pos in nao_localizados:
+            lista_de_estudantes_com_matriculas.append(self.__lista_de_estudantes_siepe[pos])
+        self.__salvar_arquivo_csv(f'{nome_turma_siepe}_nao_localizados.csv', lista_de_estudantes_com_matriculas)
+
+    def __preencher_noa_no_siepe(self, page):
+
+        homonimos = []
+        nao_localizados = []
+
+        for i in range(len(self.__lista_de_notas_ava)):
+
+            matricula   = self.__lista_de_estudantes_siepe[i][MATRICULA]
+            nota_noa    = self.__lista_de_notas_ava[i]
+
+            if not nota_noa in ['HOMONIMO','NAO_LOCALIZADO']:
+                
+                if nota_noa == 'NC':
+                    page.locator(f'input#chkNaoCompareceuBimestre_{matricula}').click()
+                else:
+                    page.locator(f'input#nota_{matricula}').fill(str(nota_noa).replace('.',','))          
+                
+            elif nota_noa == 'HOMONIMO':
+                homonimos.append(i)
+            else:
+                nao_localizados.append(i)
+
+        # Pressiona Tab
+        page.keyboard.press('Tab')
+
+        # Volta para a parte superior da página
+        page.keyboard.press('Home') 
+
+        # Capturar o nome da turma
+        nome_turma_siepe = self.__capturar_nome_da_turma_no_siepe(page)
+
+        print('\n+++++++ LISTA DE HOMÔNIMOS +++++++')
+        for i in homonimos:
+
+            matricula   = self.__lista_de_estudantes_siepe[i][MATRICULA]
+            nome        = self.__lista_de_estudantes_siepe[i][NOME]
+
+            print(f'Estudante nº {str(i + 1).zfill(3)} | {nome} ({matricula})')
+        print(f'TOTAL: {len(homonimos)} estudante(s)')
+
+        # Salvar lista de homônimos, se houver
+        lista_de_estudantes_com_matriculas = []
+        for pos in homonimos:
+            lista_de_estudantes_com_matriculas.append(self.__lista_de_estudantes_siepe[pos])
+        self.__salvar_arquivo_csv(f'{nome_turma_siepe}_homonimos.csv', lista_de_estudantes_com_matriculas)
+
+        print('\n------- LISTA DE NÃO LOCALIZADOS -------')
+        for i in nao_localizados:
+
+            matricula   = self.__lista_de_estudantes_siepe[i][MATRICULA]
+            nome        = self.__lista_de_estudantes_siepe[i][NOME]
+
+            print(f'Estudante nº {str(i + 1).zfill(3)} | {nome} ({matricula})')
+        print(f'TOTAL: {len(nao_localizados)} estudante(s)')
+
+        # Salvar lista de não localizados, se houver
+        lista_de_estudantes_com_matriculas = []
+        for pos in nao_localizados:
+            lista_de_estudantes_com_matriculas.append(self.__lista_de_estudantes_siepe[pos])
+        self.__salvar_arquivo_csv(f'{nome_turma_siepe}_nao_localizados.csv', lista_de_estudantes_com_matriculas)
+
+    def __limpar_diario_de_classe(self, page):
+
+        print('\nAguarde o processamento...')
+
+        # Injetar um JS para verificar se o checkbox está marcado,
+        # caso positivo, clicar nele uma vez,
+        # caso negativo, clivar nele duas vezes.
+        page.evaluate(''' () => { 
         
+            document.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
+                if (checkbox.checked) checkbox.click();
+                else for (let i = 0; i < 2; i++) checkbox.click();
+            });
+
+        } ''')
+
+    def __preencher_nc_nos_nao_localizados(self, page):
+
+        for i in range(len(self.__lista_de_notas_ava)):
+
+            matricula   = self.__lista_de_estudantes_siepe[i][MATRICULA]
+            nome        = self.__lista_de_estudantes_siepe[i][NOME]
+            nota        = self.__lista_de_notas_ava[i][AT1]
+
+            if nota == 'NAO_LOCALIZADO':
+
+                # AT1
+                page.locator(f'input#chkNaoCompareceu_1_{matricula}').click()
+
+                # AT2
+                page.locator(f'input#chkNaoCompareceu_2_{matricula}').click()
+
+                # RAT1
+                page.locator(f'input#chkNaoCompareceuRP_1_{matricula}').click()
+
+                # RAT2
+                page.locator(f'input#chkNaoCompareceuRP_2_{matricula}').click()
+
+                # NOTA2
+                page.locator(f'input#chkNaoCompareceu_7_{matricula}').click() 
+
+                print(f'Estudante nº {str(i + 1).zfill(3)} {nome} ({matricula}) marcado(a) como não compareceu.')
+
+        # Pressiona Tab
+        page.keyboard.press('Tab')
+
+        # Volta para a parte superior da página
+        page.keyboard.press('Home')
+
+    def __preencher_nc_nos_nao_localizados_na_noa(self, page):
+        
+        for i in range(len(self.__lista_de_notas_ava)):
+
+            matricula   = self.__lista_de_estudantes_siepe[i][MATRICULA]
+            nome        = self.__lista_de_estudantes_siepe[i][NOME]
+            nota        = self.__lista_de_notas_ava[i]
+
+            if nota == 'NAO_LOCALIZADO':
+
+                # NOA
+                page.locator(f'input#chkNaoCompareceuBimestre_{matricula}').click() 
+
+                print(f'Estudante nº {str(i + 1).zfill(3)} {nome} ({matricula}) marcado(a) como não compareceu.')
+
+        # Pressiona Tab
+        page.keyboard.press('Tab')
+
+        # Volta para a parte superior da página
+        page.keyboard.press('Home')
+
     def run():
 
         falha_critica = False
@@ -455,8 +699,10 @@ class Bot():
                 print(f'\nSequência de Processamento: {str(sequencia_de_processamento).zfill(4)}\n')
                 print(f'Planilha selecionada: {bot.__arquivo_xlsx}\n')
                 print('(a) Pressione [ENTER] para processar uma turma.')
-                print('(b) Digite "TROCAR" seguido de [ENTER] para alterar a planilha.')
-                print('(c) Digite "SAIR" seguido de [ENTER] para encerrar.\n')
+                print('(b) Digite "LIMPAR" seguido de [ENTER] para limpar o diário de classe.')
+                print('(c) Digite "TROCAR" seguido de [ENTER] para alterar a planilha.')
+                print('(d) Digite "NC" seguido de [ENTER] para marcar que os não localizados não compareceram.')
+                print('(e) Digite "SAIR" seguido de [ENTER] para encerrar.\n')
                 
                 entrada = input('O que você deseja agora? ')
 
@@ -464,14 +710,88 @@ class Bot():
 
                     bot.__selecionar_planilha_de_notas()
 
-                elif entrada == '':
+                elif entrada.upper() == 'LIMPAR':
 
                     try:
 
-                        bot.__verificar_numero_de_competencias()
-                        bot.__extrair_lista_de_estudantes(page)
-                        bot.__comparar_lista_de_estudantes_e_processar_notas()
-                        bot.__preencher_notas_no_siepe(page)
+                        bot.__limpar_diario_de_classe(page)
+
+                    except Exception:
+
+                        if not bot.__verificar_se_o_navegador_ainda_esta_funcional(page):
+
+                            print('!!! HOUVE UMA FALHA CRÍTICA NO LOGIN !!!\n')
+                            falha_critica = True
+                            break
+
+                        else:
+
+                            print('!!! HOUVE UMA FALHA NO PROCESSAMENTO !!!\n')
+
+                    except BaseException:
+
+                        print('!!! HOUVE UMA FALHA CRÍTICA NO PROCESSAMENTO !!!\n')
+                        falha_critica = True
+                        break
+
+                elif entrada.upper() == 'NC':
+
+                    eh_noa = bot.__arquivo_xlsx.strip().lower().find('noa') == 0
+
+                    try:
+
+                        if not eh_noa:
+
+                            bot.__verificar_numero_de_competencias()
+                            bot.__extrair_lista_de_estudantes(page)
+                            bot.__comparar_lista_de_estudantes_e_processar_notas()
+                            bot.__preencher_nc_nos_nao_localizados(page)
+
+                        else:
+
+                            bot.__extrair_lista_de_estudantes_noa(page)
+                            bot.__comparar_lista_de_estudantes_e_processar_notas_da_noa()
+                            bot.__preencher_nc_nos_nao_localizados_na_noa(page)
+
+                    except Exception:
+
+                        if not bot.__verificar_se_o_navegador_ainda_esta_funcional(page):
+
+                            print('!!! HOUVE UMA FALHA CRÍTICA NO LOGIN !!!\n')
+                            falha_critica = True
+                            break
+
+                        else:
+
+                            print('!!! HOUVE UMA FALHA NO PROCESSAMENTO !!!\n')
+
+                    except BaseException:
+
+                        print('!!! HOUVE UMA FALHA CRÍTICA NO PROCESSAMENTO !!!\n')
+                        falha_critica = True
+                        break
+
+                    sequencia_de_processamento += 1
+
+
+                elif entrada == '':
+
+                    eh_noa = bot.__arquivo_xlsx.strip().lower().find('noa') == 0
+
+                    try:
+
+                        if not eh_noa:
+
+                            bot.__verificar_numero_de_competencias()
+                            bot.__extrair_lista_de_estudantes(page)
+                            bot.__comparar_lista_de_estudantes_e_processar_notas()
+                            bot.__preencher_notas_no_siepe(page)
+
+                        else:
+
+                            bot.__extrair_lista_de_estudantes_noa(page)
+                            bot.__comparar_lista_de_estudantes_e_processar_notas_da_noa()
+                            bot.__preencher_noa_no_siepe(page)
 
                     except Exception:
 
