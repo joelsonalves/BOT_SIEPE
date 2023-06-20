@@ -24,6 +24,6 @@ Nota: cabe ao professor(a) e/ou ao coordenador(a), a conferência e o salvamento
 ##### 3.4. Abrir a turma desejada no navegador;
 ##### 3.5. Expandir o espaço de apontamentos no navegador;
 ##### 3.6. Escolher o componente curricular desejado no navegador;
-##### 3.7. Teclar [Enter] para iniciar o processamento, digitar "TROCAR" seguido de [Enter] para trocar a planilha e/ou digitar "SAIR" seguido de [Enter] para encerrar a automação.
+##### 3.7. Teclar [Enter] para iniciar o processamento, digitar "TROCAR" seguido de [Enter] para trocar a planilha, digitar "LIMPAR" seguido de [ENTER] para limpar o diário de classe, digitar "NC" seguido de [ENTER] para marcar os não localizados como não compareceram e/ou digitar "SAIR" seguido de [Enter] para encerrar a automação.
 
 Sucesso.
