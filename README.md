@@ -19,7 +19,7 @@ Nota: cabe ao professor(a) e/ou ao coordenador(a), a conferência e o salvamento
 ## 3. Execução da Automação
 
 ##### 3.1. Abrir o PowerShell (console da Microsoft);
-##### 3.2. Executar o comando: "cd c:\BOT_SIEPE ; python bot.py"
+##### 3.2. Executar o comando: "cd c:\BOT_SIEPE ; git pull ; python bot.py"
 ##### 3.3. Escolher a planilha de notas no console;
 ##### 3.4. Abrir a turma desejada no navegador;
 ##### 3.5. Expandir o espaço de apontamentos no navegador;
