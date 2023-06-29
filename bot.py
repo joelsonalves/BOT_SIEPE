@@ -17,7 +17,7 @@ EQUIPE_GESTORA = [
 ]
 
 NOME_DA_AUTOMACAO = 'Automação Auxiliar no Lançamento de Notas no Diário de Classe SIEPE'
-VERSAO = '2023.06.19'
+VERSAO = '2023.06.29'
 DESENVOLVEDOR = 'Joelson Alves de Melo Junior'
 CONTATO = 'joelsonjunior@educacao.pe.gov.br'
 TESTADORES = {
@@ -72,7 +72,7 @@ class Bot():
     def __init__(self):
         super().__init__()
         self.__pagina_inicial = 'https://siepe.educacao.pe.gov.br'
-        self.__pagina_apos_login = 'https://siepe.educacao.pe.gov.br/Site/Educador/paginaCentralEducadorAction.do'
+        self.__pagina_apos_login = 'https://siepe.educacao.pe.gov.br/Site/'
         self.__pagina_diario_de_classe = 'https://siepe.educacao.pe.gov.br/diarioclasse/DiarioClasse.do'
         self.__lista_de_estudantes_siepe = []
         self.__lista_de_notas_ava = []
