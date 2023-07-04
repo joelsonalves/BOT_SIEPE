@@ -131,12 +131,17 @@ class Bot():
         return True
 
     def __fazer_login(self, page):
+
         page.goto(self.__pagina_inicial)   
-        print('Aguardando login no SIEPE...')
+        print('Aguardando login no SIEPE...', end='\r')
+        segundos = 0
         
         while (True):
             page.wait_for_timeout(1000)
+            segundos += 1
+            print(f'Aguardando login no SIEPE... {segundos}s...', end='\r')
             if (page.url.find(self.__pagina_apos_login) == 0):
+                print()
                 break
         
         page.goto(self.__pagina_diario_de_classe)
@@ -665,6 +670,9 @@ class Bot():
             context = browser.new_context()
             context.clear_cookies()
             page = context.new_page()
+            
+            # Esperar até no máximo 
+            page.set_default_timeout(5 * 60 * 1000)
 
             try:
 
@@ -672,19 +680,16 @@ class Bot():
 
             except Exception:
 
-                if not bot.__verificar_se_o_navegador_ainda_esta_funcional(page):
-
-                    print('!!! HOUVE UMA FALHA CRÍTICA NO LOGIN !!!\n')
-                    falha_critica = True
-
-                else:
-
-                    print('!!! HOUVE UMA FALHA NO LOGIN !!!\n')
+                print('!!! HOUVE UMA FALHA CRÍTICA NO LOGIN !!!\n')
+                falha_critica = True
 
             except BaseException:
 
                 print('!!! HOUVE UMA FALHA CRÍTICA NO LOGIN !!!\n')
                 falha_critica = True
+
+            # Esperar por no máximo 30 segundos
+            page.set_default_timeout(0.5 * 60 * 1000)
 
             sequencia_de_processamento = 1
 
