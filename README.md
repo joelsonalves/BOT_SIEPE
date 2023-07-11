@@ -6,8 +6,10 @@ Nota: cabe ao professor(a) e/ou ao coordenador(a), a conferência e o salvamento
 
 ## 1. Preparação do Ambiente
 
-##### 1.1. Baixar e instalar o python 3.11 ou versão estável superior (https://www.python.org); Nota: antes de instalar o Python, desmarcar a opção "Install launcher for all users (recommended)", marcar a opção "Add Python 3.x to PATH", clicar na opção "Install Now";
-##### 1.2. Baixar e instalar o Git (https://git-scm.com/download/windows); Nota: não precisa ajustar nenhuma configuração, clicar sempre em "Next", por fim em "Install";
+##### 1.1. Baixar e instalar o python 3.11 ou versão estável superior (https://www.python.org); 
+Nota: antes de instalar o Python, desmarcar a opção "Install launcher for all users (recommended)", marcar a opção "Add Python 3.x to PATH", clicar na opção "Install Now";
+##### 1.2. Baixar e instalar o Git (https://git-scm.com/download/windows); 
+Nota: não precisa ajustar nenhuma configuração, clicar sempre em "Next", por fim em "Install";
 ##### 1.3. Instalar as bibliotecas Pandas, Openpyxl e PlayWright, complementos do PlayWright, entrar na unidade C: e realizar o download da Automação, preferencialmente através do PowerShell: "pip install pandas, openpyxl, playwright ; playwright install ; cd \ ; git clone https://github.com/joelsonalves/BOT_SIEPE.git";
 
 ## 2. Preparação dos Dados de Entrada
