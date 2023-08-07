@@ -34,7 +34,7 @@ TESTADORES = {
         'Cristiane Maria de Oliveira (ADM 2023.1)',
     ],
     '5' : [
-        'Aguardando validação',
+        'André Lemoine Neves (DIN 2023.1)',
     ],
     '6' : [
         'Aguardando validação',
