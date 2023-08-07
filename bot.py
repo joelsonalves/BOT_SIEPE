@@ -35,6 +35,7 @@ TESTADORES = {
     ],
     '5' : [
         'André Lemoine Neves (DIN 2023.1)',
+        'Gildson Alves Figueiredo (DSI 2023.1)',
     ],
     '6' : [
         'Aguardando validação',
