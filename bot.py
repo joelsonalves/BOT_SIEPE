@@ -17,7 +17,7 @@ EQUIPE_GESTORA = [
 ]
 
 NOME_DA_AUTOMACAO = 'Automação Auxiliar no Lançamento de Notas no Diário de Classe SIEPE'
-VERSAO = '2023.06.29'
+VERSAO = '2023.08.07'
 DESENVOLVEDOR = 'Joelson Alves de Melo Junior'
 CONTATO = 'joelsonjunior@educacao.pe.gov.br'
 TESTADORES = {
